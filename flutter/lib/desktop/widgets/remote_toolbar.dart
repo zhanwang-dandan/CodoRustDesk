@@ -22,6 +22,7 @@ import '../../models/model.dart';
 import '../../models/platform_model.dart';
 import '../../common/shared_state.dart';
 import './popup_menu.dart';
+import './office_session_panel.dart';
 import './kb_layout_type_chooser.dart';
 import 'package:flutter_hbb/utils/scale.dart';
 import 'package:flutter_hbb/common/widgets/custom_scale_base.dart';
@@ -1759,6 +1760,7 @@ class _DisplayMenuState extends State<_DisplayMenu> {
     final colorScheme = Theme.of(context).colorScheme;
     menuChildrenGetter(_IconSubmenuButtonState state) {
       final menuChildren = <Widget>[
+        if (isWindows) MenuButton(ffi: ffi, child: const Text('美区办公与诊断'), onPressed: () => showOfficeSessionPanel(ffi)),
         _screenAdjustor.adjustWindow(context),
         viewStyle(customPercent: _customPercent),
         scrollStyle(state, colorScheme),
