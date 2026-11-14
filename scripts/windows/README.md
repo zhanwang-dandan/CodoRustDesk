@@ -57,6 +57,40 @@ The official portable packer is still built in that mode; `cargo` and Python wit
 The script enables software codecs, matching the verified local build; it does
 not enable optional `hwcodec` or `vram` features or install driver packages.
 
+## Automatic tag releases
+
+`.github/workflows/codo-windows-release.yml` builds Windows x64 Flutter when a
+version tag such as `v1.5.3-office.2` or `v1.5.4` is pushed. The numeric application
+version must match both `Cargo.toml` and `flutter/pubspec.yaml`. Update
+`Cargo.lock` as needed, then commit and push those version updates before tagging. For example:
+
+```powershell
+git tag v1.5.3-office.2
+git push origin v1.5.3-office.2
+```
+
+The workflow generates matching bridge files with the existing CI workflow,
+installs pinned toolchains/native libraries, runs the local build/packaging
+script and the office/connection-parameter tests, then checks the portable
+executable's version and every extracted payload file. The Release receives
+the EXE, ZIP and `SHA256SUMS.txt`; bridge files and packages also remain as
+Actions artifacts. Version suffixes such as `-office.2` are preserved in package
+filenames and create a prerelease. Stable version tags create a regular release.
+
+No personal token is required: only the publish job has `contents: write` on
+the built-in `GITHUB_TOKEN`. Re-running a tag build replaces its matching assets
+and preserves other assets and the existing release description.
+The inherited multi-platform tag workflow runs only in the upstream RustDesk
+repository, avoiding duplicate publishers in this fork.
+
+For a build-only check, manually run **CodoRustDesk Windows Release** on a branch
+with `publish` left false. Download the `codo-windows-release` artifact from
+the run. To manually publish a tagged build, select that tag as the workflow ref
+and enable `publish`; a branch ref is rejected for publishing.
+
+The local script also accepts `-PackageVersion 1.5.3-office.2` to label packages
+without changing the embedded application's numeric version.
+
 ## Sciter debug client
 
 ```powershell

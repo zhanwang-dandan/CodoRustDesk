@@ -4,6 +4,7 @@ param(
     [string]$OutputDirectory,
     [string]$ShortSourcePath,
     [string]$Python = 'python',
+    [string]$PackageVersion,
     [switch]$PackageOnly
 )
 
@@ -25,7 +26,11 @@ if ($ShortSourcePath) {
 }
 $version = [regex]::Match((Get-Content "$repo/Cargo.toml" -Raw), '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
 if (-not $version) { throw 'Cannot read the application version from Cargo.toml.' }
-$name = "CodoRustDesk-$version-windows-x64-Flutter"
+if (-not $PackageVersion) { $PackageVersion = $version }
+if ($PackageVersion -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$') {
+    throw 'PackageVersion must be a version such as 1.5.3 or 1.5.3-office.2.'
+}
+$name = "CodoRustDesk-$PackageVersion-windows-x64-Flutter"
 $bundle = Join-Path $OutputDirectory "$name-Release"
 if (Test-Path -LiteralPath $bundle) { throw "Bundle already exists; choose a fresh OutputDirectory: $bundle" }
 
@@ -110,7 +115,7 @@ try {
     }
     $sourceCommit = git -C $repo rev-parse HEAD
     Assert-Command 'Source revision lookup'
-    [ordered]@{ version = $version; source_commit = $sourceCommit; features = @('flutter', 'use_dasp');
+    [ordered]@{ version = $version; package_version = $PackageVersion; source_commit = $sourceCommit; features = @('flutter', 'use_dasp');
         architecture = 'x86_64-pc-windows-msvc'; signed = $false } |
         ConvertTo-Json | Set-Content "$bundle/BUILD-INFO.json" -Encoding utf8
     $metadata = "$repo/libs/portable/app_metadata.toml"
