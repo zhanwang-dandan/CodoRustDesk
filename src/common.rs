@@ -1354,10 +1354,9 @@ pub fn get_webrtc_enabled() -> bool {
 
 pub fn get_local_option(key: &str) -> String {
     let v = LocalConfig::get_option(key);
-    if key == keys::OPTION_ENABLE_UDP_PUNCH
-        || key == keys::OPTION_ENABLE_IPV6_PUNCH
-        || key == keys::OPTION_ENABLE_WEBRTC
-    {
+    // Codo: UDP/KCP punch stays on by default with a self-hosted server; peers whose hbbs
+    // does not offer a UDP port still fall back to TCP punch and relay.
+    if key == keys::OPTION_ENABLE_IPV6_PUNCH || key == keys::OPTION_ENABLE_WEBRTC {
         if v.is_empty() {
             if !is_public(&Config::get_rendezvous_server()) {
                 return "N".to_owned();
