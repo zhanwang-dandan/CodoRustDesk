@@ -28,4 +28,12 @@ void main() {
     expect(officeConnectionAdvice(direct: true, delay: '80', fps: '8'),
         contains('静态页面'));
   });
+  test('只有文字与代码预设请求 4:4:4 真彩色，且仅 AV1/VP9 编码可用', () {
+    expect(officeProfiles.where((p) => p.trueColor).map((p) => p.title),
+        ['文字与代码']);
+    expect(officeTrueColorSupported('VP9'), isTrue);
+    expect(officeTrueColorSupported('AV1'), isTrue);
+    expect(officeTrueColorSupported('H264'), isFalse);
+    expect(officeTrueColorSupported(null), isFalse);
+  });
 }

@@ -80,15 +80,41 @@ class _OfficeSessionPanelState extends State<OfficeSessionPanel> {
         await bind.sessionSetImageQuality(
             sessionId: ffi.sessionId, value: kRemoteImageQualityBalanced);
       }
+      final wantTrueColor = profile?.trueColor ?? false;
+      final allowTrueColor = versionCmp(ffi.ffiModel.pi.version, '1.2.4') >=
+              0 &&
+          officeTrueColorSupported(ffi.qualityMonitorModel.data.codecFormat);
+      if (allowTrueColor &&
+          bind.sessionGetToggleOptionSync(
+                  sessionId: ffi.sessionId, arg: kOptionI444) !=
+              wantTrueColor) {
+        await bind.sessionToggleOption(
+            sessionId: ffi.sessionId, value: kOptionI444);
+        bind.sessionChangePreferCodec(sessionId: ffi.sessionId);
+      }
       await _readCurrent();
       if (mounted) {
         setState(() => _message = '${profile?.title ?? "原版均衡"}配置已发送并按设备保存。'
-            '${allowFps ? "帧率为上限，实际帧率由会话调整。" : "当前公共中继或远端版本不支持自定义帧率，已保持其帧率策略。"}');
+            '${allowFps ? "帧率为上限，实际帧率由会话调整。" : "当前公共中继或远端版本不支持自定义帧率，已保持其帧率策略。"}'
+            '${wantTrueColor && !allowTrueColor ? "当前编码不支持 4:4:4 真彩色，文字边缘清晰度未提升。" : ""}');
       }
     } catch (error) {
       if (mounted) setState(() => _message = '配置未完成，请重试：$error');
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  bool get _punchEnabled =>
+      mainGetLocalBoolOptionSync(kOptionEnableUdpPunch) &&
+      mainGetLocalBoolOptionSync(kOptionEnableIpv6Punch);
+
+  Future<void> _enablePunch() async {
+    await mainSetLocalBoolOption(kOptionEnableUdpPunch, true);
+    await mainSetLocalBoolOption(kOptionEnableIpv6Punch, true);
+    if (mounted) {
+      setState(() => _message = '已在本机开启 UDP 打洞和 IPv6 直连。'
+          '被控电脑也需在 设置 → 常规 → 其他 中开启这两项，重新连接后生效；能否直连取决于两端网络。');
     }
   }
 
@@ -129,6 +155,23 @@ class _OfficeSessionPanelState extends State<OfficeSessionPanel> {
               ),
             ),
           Text(_current, style: const TextStyle(fontSize: 12)),
+          if (widget.ffi.ffiModel.direct == false && !_punchEnabled)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: OutlinedButton(
+                onPressed: _busy ? null : _enablePunch,
+                child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('开启直连优化 · UDP 打洞 + IPv6 直连'),
+                        Text('当前经过中继。两端直连可绕开中继，通常是降低键鼠延迟最有效的办法。',
+                            style: TextStyle(fontSize: 12))
+                      ],
+                    )),
+              ),
+            ),
           if (_message.isNotEmpty)
             Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),

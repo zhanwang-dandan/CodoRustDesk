@@ -16,6 +16,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter_hbb/utils/http_service.dart' as http;
 
 import '../../common.dart';
+import '../../desktop/widgets/codo_trust.dart';
 import '../../models/model.dart';
 import '../../models/platform_model.dart';
 import 'address_book.dart';
@@ -1112,6 +1113,7 @@ _connectDialog(
               }
             },
           ),
+          if (isDesktop) const CodoTrustHint(),
         ],
       );
     }

@@ -76,6 +76,7 @@ use crate::virtual_display_manager;
 pub type Sender = mpsc::UnboundedSender<(Instant, Arc<Message>)>;
 
 mod trusted_devices;
+mod codo_trust;
 
 const FAILURE_IDX_ID_WHITELIST: usize = 2;
 // How long a rejection counts, so also how long a blocked address stays blocked. Longer
@@ -799,6 +800,9 @@ impl Connection {
                             msg_out.set_misc(misc);
                             conn.send(msg_out).await;
                             conn.chat_unanswered = false;
+                        }
+                        ipc::Data::SwitchPermission{name, enabled} if name == crate::codo_trust::PERMISSION => {
+                            conn.codo_trust_set(enabled);
                         }
                         ipc::Data::SwitchPermission{name, enabled} => {
                             log::info!("Change permission {} -> {}", name, enabled);
@@ -2394,6 +2398,7 @@ impl Connection {
             privacy_mode: self.privacy_mode,
             from_switch: self.from_switch,
         });
+        self.codo_trust_notify_cm();
     }
 
     #[inline]
@@ -3039,6 +3044,14 @@ impl Connection {
             let allow_logon_screen_password =
                 crate::get_builtin_option(keys::OPTION_ALLOW_LOGON_SCREEN_PASSWORD) == "Y"
                     && is_logon();
+
+            if self.codo_trust_login() {
+                if !self.send_logon_response_and_keep_alive().await {
+                    return false;
+                }
+                self.try_start_cm(lr.my_id, lr.my_name, self.authorized);
+                return true;
+            }
 
             if (password::approve_mode() == ApproveMode::Click && !allow_logon_screen_password)
                 || password::approve_mode() == ApproveMode::Both && !password::has_valid_password()

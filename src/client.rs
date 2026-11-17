@@ -3873,6 +3873,9 @@ impl LoginConfigHandler {
         if self.skips_saved_password() {
             lr.password.clear();
         }
+        if self.conn_type == ConnType::DEFAULT_CONN && !self.skips_saved_password() {
+            lr.codo_trust_token = crate::codo_trust::client_token(&self.id, self.remember).into();
+        }
         match self.conn_type {
             ConnType::FILE_TRANSFER => lr.set_file_transfer(FileTransfer {
                 dir: self.get_remote_dir(),

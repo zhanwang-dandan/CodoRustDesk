@@ -543,16 +543,19 @@ class ServerModel with ChangeNotifier {
         } else {
           if (_clients[index].authorized) {
             _clients[index].privacyMode = client.privacyMode;
+            _clients[index].codoTrust = client.codoTrust;
             notifyListeners();
             return;
           }
           _clients[index].authorized = true;
           _clients[index].privacyMode = client.privacyMode;
+          _clients[index].codoTrust = client.codoTrust;
         }
       } else {
         final index = _clients.indexWhere((c) => c.id == client.id);
         if (index >= 0) {
           _clients[index].privacyMode = client.privacyMode;
+          _clients[index].codoTrust = client.codoTrust;
           notifyListeners();
           return;
         }
@@ -828,6 +831,7 @@ class Client {
   bool fromSwitch = false;
   bool inVoiceCall = false;
   bool incomingVoiceCall = false;
+  int codoTrust = 0;
 
   RxInt unreadChatMessageCount = 0.obs;
 
@@ -857,6 +861,7 @@ class Client {
     fromSwitch = json['from_switch'];
     inVoiceCall = json['in_voice_call'];
     incomingVoiceCall = json['incoming_voice_call'];
+    codoTrust = json['codo_trust'] ?? 0;
   }
 
   Map<String, dynamic> toJson() {

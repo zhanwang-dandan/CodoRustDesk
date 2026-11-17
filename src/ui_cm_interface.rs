@@ -149,6 +149,8 @@ pub struct Client {
     pub from_switch: bool,
     pub in_voice_call: bool,
     pub incoming_voice_call: bool,
+    // 0: not requested, 1: the controller asks to be trusted, 2: trusted.
+    pub codo_trust: i32,
     #[serde(skip)]
     #[cfg(not(any(target_os = "ios")))]
     tx: UnboundedSender<Data>,
@@ -261,6 +263,7 @@ impl<T: InvokeUiCM> ConnectionManager<T> {
             tx,
             in_voice_call: false,
             incoming_voice_call: false,
+            codo_trust: 0,
         };
         CLIENTS
             .write()
@@ -600,6 +603,18 @@ impl<T: InvokeUiCM> IpcTaskRunner<T> {
                                         if let Some(client) = client {
                                             // This reuses add_connection(), and cm.tis only selectively updates
                                             // existing rows (authorized/privacy_mode) for this fallback path.
+                                            self.cm.ui_handler.add_connection(&client);
+                                        }
+                                    }
+                                    if name == crate::codo_trust::PERMISSION {
+                                        let client = {
+                                            let mut clients = CLIENTS.write().unwrap();
+                                            clients.get_mut(&self.conn_id).map(|c| {
+                                                c.codo_trust = if enabled { 2 } else { 1 };
+                                                c.clone()
+                                            })
+                                        };
+                                        if let Some(client) = client {
                                             self.cm.ui_handler.add_connection(&client);
                                         }
                                     }
