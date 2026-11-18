@@ -23,6 +23,8 @@ Yet another remote desktop solution, written in Rust. Works out of the box with 
 
 RustDesk welcomes contribution from everyone. See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for help getting started.
 
+**CodoRustDesk 文档：** [远程控制方案的技术原理（中文）](docs/REMOTE-CONTROL-ARCHITECTURE-ZH.md)
+
 [**FAQ**](https://github.com/rustdesk/rustdesk/wiki/FAQ)
 
 [**BINARY DOWNLOAD**](https://github.com/rustdesk/rustdesk/releases)
