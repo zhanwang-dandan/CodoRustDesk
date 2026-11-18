@@ -48,7 +48,9 @@ checkout paths. The script uses plugin directory junctions if Windows symbolic
 link privileges are unavailable; it does not change Developer Mode settings.
 
 The script builds the Rust Flutter core, virtual-display helper and Flutter
-Windows runner, then produces a folder bundle, a ZIP, a single-file portable EXE
+Windows runner, then produces a folder bundle, a ZIP, a single-file portable EXE,
+an installer EXE (the same packer under a name ending in `install.exe`, which opens
+the install page)
 and SHA256SUMS.txt. Runtime DLLs, assets, licenses and source metadata are bundled.
 `-PackageOnly` packages existing Release outputs without rebuilding the application.
 The official portable packer is still built in that mode; `cargo` and Python with

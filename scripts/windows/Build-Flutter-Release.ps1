@@ -132,12 +132,15 @@ try {
     }
     $zip = Join-Path $OutputDirectory "$name-Release.zip"
     Compress-Archive -LiteralPath $bundle -DestinationPath $zip
-    $hashLines = foreach ($artifact in @($portable, $zip)) {
+    # The packer opens the install page when its own file name ends with "install.exe".
+    $installer = Join-Path $OutputDirectory "CodoRustDesk-$PackageVersion-windows-x64-install.exe"
+    Copy-Item -LiteralPath $portable -Destination $installer
+    $hashLines = foreach ($artifact in @($portable, $installer, $zip)) {
         $hash = Get-FileHash -LiteralPath $artifact -Algorithm SHA256
         "$($hash.Hash.ToLower())  $([IO.Path]::GetFileName($artifact))"
     }
     $hashLines | Set-Content (Join-Path $OutputDirectory 'SHA256SUMS.txt') -Encoding utf8
-    Get-Item $portable, $zip
+    Get-Item $portable, $installer, $zip
 } finally {
     Pop-Location
 }

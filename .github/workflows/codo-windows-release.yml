@@ -225,6 +225,7 @@ jobs:
           Windows x64 Flutter Release，包含软件编解码和办公配置界面。
 
           - 单文件 portable.exe：双击自解压并运行。
+          - install.exe：双击打开安装界面，安装服务需要管理员权限；会覆盖已安装的同名 RustDesk。
           - ZIP：解压整个目录，运行 rustdesk.exe，保留全部 DLL 和 data 文件夹。
           - SHA256SUMS.txt：EXE 和 ZIP 的 SHA-256 校验值。
 
