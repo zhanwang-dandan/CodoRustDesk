@@ -826,5 +826,14 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("install-directory-not-empty-tip", "Folder yang dipilih tidak kosong. Instalasi dapat menghapus data yang ada. Pertimbangkan untuk memilih folder lain."),
         ("Request approval", "Minta persetujuan"),
         ("Forever", "Selamanya"),
+        ("auto-accept-trust-tip", ""),
+        ("auto-accept-confirm-tip", ""),
+        ("auto-accept-trusted-tip", ""),
+        ("auto-accept-unsupported-tip", ""),
+        ("auto-accept-granted-tip", ""),
+        ("Auto-accepted devices", ""),
+        ("auto-accept-devices-tip", ""),
+        ("auto-accept-devices-empty-tip", ""),
+        ("Manage", ""),
     ].iter().cloned().collect();
 }

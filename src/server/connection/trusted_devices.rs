@@ -1,10 +1,12 @@
 use super::{ConnAuditPrimaryAuth, ConnAuditTwoFactor, Connection};
 use crate::trusted_devices::{
     authority::Unavailable,
+    auto_accept,
     host::{self, LoginProof},
     DeviceInfo,
 };
-use base::message_proto::LoginResponse;
+use base::message_proto::{LoginResponse, Message, Misc};
+use hbb_common::{bail, tokio, ResultType};
 
 impl Connection {
     pub(super) async fn begin_trusted_device(&mut self) -> bool {
@@ -97,5 +99,58 @@ impl Connection {
                 false
             }
         }
+    }
+
+    // Auto-accept skips the password, so it needs an encrypted, ID-based connection.
+    fn auto_accept_channel_secured(&self) -> bool {
+        self.stream.is_secured() && !crate::common::is_direct_ip_access(&self.lr.username)
+    }
+
+    /// Accepts a controller trusted from the connection manager. Must run after
+    /// `handle_login_request_without_validation`, which sets `self.lr`.
+    pub(super) fn try_auto_accept(&mut self) -> bool {
+        // Keep the token out of the request copies kept for the session.
+        let token = std::mem::take(&mut self.lr.auto_accept_token);
+        if token.is_empty() || self.from_switch || !self.auto_accept_channel_secured() {
+            return false;
+        }
+        // An OS-login terminal needs its own authorization step.
+        if self.terminal && !self.lr.os_login.username.is_empty() {
+            return false;
+        }
+        if !auto_accept::verify(&token, &self.lr.my_id) {
+            return false;
+        }
+        log::info!("Auto-accepting trusted controller {}", self.lr.my_id);
+        self.set_conn_audit_primary_auth(ConnAuditPrimaryAuth::Click);
+        self.trusted_device = None;
+        self.require_2fa = None;
+        true
+    }
+
+    /// Trusts the connected controller at the host user's request from the connection
+    /// manager, and sends it the token it presents on later logins.
+    pub(super) async fn grant_auto_accept(&mut self) -> ResultType<()> {
+        if !self.authorized {
+            bail!("The session is not connected yet");
+        }
+        if !self.lr.auto_accept_supported {
+            bail!("auto-accept-unsupported-tip");
+        }
+        if !self.auto_accept_channel_secured() {
+            bail!("The connection is not encrypted; the device cannot be trusted");
+        }
+        let id = self.lr.my_id.clone();
+        let name = self.lr.my_name.clone();
+        let platform = self.lr.my_platform.clone();
+        let token =
+            tokio::task::spawn_blocking(move || auto_accept::grant(&id, &name, &platform))
+                .await??;
+        let mut misc = Misc::new();
+        misc.set_auto_accept_token(token.into());
+        let mut msg = Message::new();
+        msg.set_misc(misc);
+        self.send(msg).await;
+        Ok(())
     }
 }

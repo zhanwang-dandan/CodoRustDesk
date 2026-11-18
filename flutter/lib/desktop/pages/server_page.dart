@@ -18,6 +18,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common.dart';
 import '../../common/widgets/chat_page.dart';
+import '../../common/widgets/dialog.dart';
 import '../../models/file_model.dart';
 import '../../models/platform_model.dart';
 import '../../models/server_model.dart';
@@ -1034,6 +1035,22 @@ class _CmControlPanel extends StatelessWidget {
             textColor: Colors.white,
           ),
         ),
+        Offstage(
+          offstage: client.fromSwitch,
+          child: buildButton(
+            context,
+            color: Colors.green[700],
+            onClick: handleTrustDevice,
+            icon: Icon(
+              Icons.verified_user_rounded,
+              color: Colors.white,
+              size: 14,
+            ),
+            text: 'Trust this device',
+            tooltip: 'auto-accept-trust-tip',
+            textColor: Colors.white,
+          ),
+        ),
         Row(
           children: [
             Expanded(
@@ -1196,6 +1213,15 @@ class _CmControlPanel extends StatelessWidget {
 
   void handleDisconnect() {
     bind.cmCloseConnection(connId: client.id);
+  }
+
+  void handleTrustDevice() {
+    CommonConfirmDialog(
+        gFFI.dialogManager,
+        '${translate('auto-accept-confirm-tip')}
+
+${client.name} (${client.peerId})',
+        () => bind.cmTrustDevice(connId: client.id));
   }
 
   void handleAccept(BuildContext context) {

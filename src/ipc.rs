@@ -368,6 +368,9 @@ pub enum Data {
         name: String,
         enabled: bool,
     },
+    /// CM -> connection: `None` asks to trust the connected controller (auto-accept it later).
+    /// Connection -> CM: `Some(error)`, empty on success.
+    TrustDevice(Option<String>),
     SystemInfo(Option<String>),
     ClickTime(i64),
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

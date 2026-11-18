@@ -826,5 +826,14 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("install-directory-not-empty-tip", "所選資料夾不是空的。安裝可能刪除現有資料。建議選擇其他資料夾。"),
         ("Request approval", "請求批准"),
         ("Forever", "永久"),
+        ("auto-accept-trust-tip", "下次自動接受此裝置的連線，無需密碼和確認"),
+        ("auto-accept-confirm-tip", "確定信任此裝置嗎？下次它連線時將自動接受，無需密碼和確認。可在 設定 → 安全 → 自動接受的裝置 中撤銷。"),
+        ("auto-accept-trusted-tip", "已信任此裝置，下次將自動接受連線。"),
+        ("auto-accept-unsupported-tip", "對方用戶端不支援此功能，請讓對方升級到最新版 CodoRustDesk。"),
+        ("auto-accept-granted-tip", "對方已信任本裝置，之後連線將被自動接受。"),
+        ("Auto-accepted devices", "自動接受的裝置"),
+        ("auto-accept-devices-tip", "在連線管理視窗中被信任的裝置，連線時無需密碼和確認。"),
+        ("auto-accept-devices-empty-tip", "暫無自動接受的裝置。"),
+        ("Manage", "管理"),
     ].iter().cloned().collect();
 }

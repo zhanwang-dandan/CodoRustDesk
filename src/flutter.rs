@@ -1590,6 +1590,13 @@ pub mod connection_manager {
         fn file_transfer_log(&self, action: &str, log: &str) {
             self.push_event("cm_file_transfer_log", &[(action, log)]);
         }
+
+        fn trust_device_result(&self, id: i32, error: String) {
+            self.push_event(
+                "cm_trust_device_result",
+                &[("id", &id.to_string()), ("error", &error)],
+            );
+        }
     }
 
     impl FlutterHandler {

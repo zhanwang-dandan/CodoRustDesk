@@ -2877,6 +2877,78 @@ void manageTrustedDeviceDialog() async {
   });
 }
 
+/// Controllers trusted from the connection manager ("Trust this device"); they are
+/// accepted without a password or confirmation. Only token hashes are stored.
+Future<List<Map<String, dynamic>>> _loadAutoAcceptDevices() async {
+  final value = await bind.mainGetOption(key: kOptionAutoAcceptDevices);
+  if (value.isEmpty) return [];
+  try {
+    return (jsonDecode(value) as List<dynamic>)
+        .whereType<Map<String, dynamic>>()
+        .toList();
+  } catch (e) {
+    debugPrint('Invalid auto-accept devices: $e');
+    return [];
+  }
+}
+
+void manageAutoAcceptDevicesDialog() async {
+  final devices = (await _loadAutoAcceptDevices()).obs;
+  Future<void> save() async {
+    await bind.mainSetOption(
+        key: kOptionAutoAcceptDevices,
+        value: devices.isEmpty ? '' : jsonEncode(devices.toList()));
+  }
+
+  String formatTime(dynamic time) {
+    final ms = time is num ? time.toInt() : 0;
+    if (ms <= 0) return '';
+    final s = DateTime.fromMillisecondsSinceEpoch(ms).toString();
+    return s.length > 19 ? s.substring(0, 19) : s;
+  }
+
+  gFFI.dialogManager.show((setState, close, context) {
+    return CustomAlertDialog(
+      title: Text(translate('Auto-accepted devices')),
+      content: SizedBox(
+        width: 420,
+        child: Obx(() => devices.isEmpty
+            ? Text(translate('auto-accept-devices-empty-tip'))
+            : ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 360),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: devices
+                        .map((d) => ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              title: Text('${d['name'] ?? ''} (${d['id'] ?? ''})'),
+                              subtitle: Text(
+                                  '${d['platform'] ?? ''}  ${formatTime(d['time'])}'),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: translate('Delete'),
+                                onPressed: () async {
+                                  devices.remove(d);
+                                  await save();
+                                },
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                ),
+              )),
+      ),
+      actions: [
+        dialogButton(translate("Close"), onPressed: close, isOutline: true)
+            .marginOnly(top: 12),
+      ],
+      onCancel: close,
+    );
+  });
+}
+
 Widget trustedDeviceExpiration({
   required bool enabled,
   required VoidCallback onChanged,

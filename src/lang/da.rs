@@ -826,5 +826,14 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("install-directory-not-empty-tip", "Den valgte mappe er ikke tom. Installationen kan slette eksisterende data. Overvej at vælge en anden mappe."),
         ("Request approval", "Anmod om godkendelse"),
         ("Forever", "For evigt"),
+        ("auto-accept-trust-tip", ""),
+        ("auto-accept-confirm-tip", ""),
+        ("auto-accept-trusted-tip", ""),
+        ("auto-accept-unsupported-tip", ""),
+        ("auto-accept-granted-tip", ""),
+        ("Auto-accepted devices", ""),
+        ("auto-accept-devices-tip", ""),
+        ("auto-accept-devices-empty-tip", ""),
+        ("Manage", ""),
     ].iter().cloned().collect();
 }

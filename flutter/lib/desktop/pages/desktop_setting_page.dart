@@ -1040,6 +1040,18 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
                 permissions(context),
                 password(context),
                 _Card(title: '2FA', children: [tfa()]),
+                _Card(title: 'Auto-accepted devices', children: [
+                  Row(children: [
+                    Expanded(
+                        child: Text(translate('auto-accept-devices-tip'),
+                            style: TextStyle(
+                                color: disabledTextColor(context, !locked)))),
+                    ElevatedButton(
+                        onPressed:
+                            locked ? null : () => manageAutoAcceptDevicesDialog(),
+                        child: Text(translate('Manage'))),
+                  ]).marginOnly(left: _kContentHMargin, top: 8, bottom: 8),
+                ]),
                 if (!isChangeIdDisabled())
                   _Card(title: 'ID', children: [changeId()]),
                 more(context),

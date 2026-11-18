@@ -826,5 +826,14 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("install-directory-not-empty-tip", "Избраната папка не е празна. Инсталацията може да изтрие съществуващите данни. Препоръчително е да изберете друга папка."),
         ("Request approval", "Поискай одобрение"),
         ("Forever", "Завинаги"),
+        ("auto-accept-trust-tip", ""),
+        ("auto-accept-confirm-tip", ""),
+        ("auto-accept-trusted-tip", ""),
+        ("auto-accept-unsupported-tip", ""),
+        ("auto-accept-granted-tip", ""),
+        ("Auto-accepted devices", ""),
+        ("auto-accept-devices-tip", ""),
+        ("auto-accept-devices-empty-tip", ""),
+        ("Manage", ""),
     ].iter().cloned().collect();
 }

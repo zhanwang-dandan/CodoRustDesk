@@ -198,6 +198,9 @@ pub trait InvokeUiCM: Send + Clone + 'static + Sized {
     fn update_voice_call_state(&self, client: &Client);
 
     fn file_transfer_log(&self, action: &str, log: &str);
+
+    /// Result of `trust_device`; `error` is empty on success.
+    fn trust_device_result(&self, _id: i32, _error: String) {}
 }
 
 impl<T: InvokeUiCM> Deref for ConnectionManager<T> {
@@ -403,6 +406,18 @@ pub fn send_chat(id: i32, text: String) {
     }
 }
 
+/// Trusts the controller of connection `id`: it will be accepted without a password or
+/// confirmation on later connections. The result arrives via `trust_device_result`.
+#[inline]
+#[cfg(not(any(target_os = "ios")))]
+pub fn trust_device(id: i32) {
+    if let Some(client) = CLIENTS.read().unwrap().get(&id) {
+        if client.authorized && !client.disconnected {
+            allow_err!(client.tx.send(Data::TrustDevice(None)));
+        }
+    }
+}
+
 #[inline]
 #[cfg(not(any(target_os = "ios")))]
 pub fn switch_permission(id: i32, name: String, enabled: bool) {
@@ -583,6 +598,9 @@ impl<T: InvokeUiCM> IpcTaskRunner<T> {
                                 }
                                 Data::ChatMessage { text } => {
                                     self.cm.new_message(self.conn_id, text);
+                                }
+                                Data::TrustDevice(Some(error)) => {
+                                    self.cm.trust_device_result(self.conn_id, error);
                                 }
                                 Data::SwitchPermission { name, enabled } => {
                                     // Keep this branch scoped to privacy mode rollback.

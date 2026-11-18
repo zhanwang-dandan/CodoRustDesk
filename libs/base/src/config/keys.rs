@@ -89,6 +89,11 @@ pub const OPTION_ENABLE_ANDROID_SOFTWARE_ENCODING_HALF_SCALE: &str =
     "enable-android-software-encoding-half-scale";
 pub const OPTION_ENABLE_TRUSTED_DEVICES: &str = "enable-trusted-devices";
 pub const OPTION_TRUSTED_DEVICE_EXPIRATION: &str = "trusted-device-expiration-days";
+/// Host: controllers trusted from the connection manager, accepted without a password or
+/// confirmation. JSON list; only token hashes are stored. Not a server-pushed setting.
+pub const OPTION_AUTO_ACCEPT_DEVICES: &str = "auto-accept-devices";
+/// Controller (peer option): the encrypted auto-accept token issued by that peer.
+pub const OPTION_AUTO_ACCEPT_TOKEN: &str = "auto-accept-token";
 pub const OPTION_AV1_TEST: &str = "av1-test";
 /// Maximum number of files allowed during a single file transfer request.
 ///

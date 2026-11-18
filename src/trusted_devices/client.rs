@@ -83,6 +83,26 @@ impl Session {
             (self.credentials.clone(), message.union.as_mut())
         {
             request.trusted_device_v2_supported = true;
+            // Auto-accept skips the password, so its token only travels over a connection
+            // encrypted to the host's verified key (never a direct-IP link).
+            let auto_accept_supported = credentials.issuer.public_key.is_some();
+            request.auto_accept_supported = auto_accept_supported;
+            request.auto_accept_token.clear();
+            let auto_accept = credentials.clone();
+            let loaded = if auto_accept_supported {
+                tokio::task::spawn_blocking(move || auto_accept.load_auto_accept()).await?
+            } else {
+                Ok(None)
+            };
+            match loaded {
+                Ok(Some(token)) => request.auto_accept_token = token.into(),
+                Ok(None) => {}
+                Err(error) => {
+                    const LOG_INTERVAL: std::time::Duration = std::time::Duration::from_secs(30);
+                    hbb_common::throttled_log!(LOG_INTERVAL, warn,
+                        "Auto-accept credential unavailable; using normal authentication: {error}");
+                }
+            }
             self.legacy = !request.hwid.is_empty();
             if !request.password.is_empty() {
                 request.trusted_device_v2_token.clear();
@@ -103,6 +123,19 @@ impl Session {
             }
         }
         Ok(message)
+    }
+
+    /// Encodes an auto-accept token issued by the host so it can be kept in the peer's
+    /// options. Bound to this host's identity like trusted-device credentials.
+    pub fn encode_auto_accept(&self, token: &[u8]) -> ResultType<String> {
+        let Some(credentials) = self
+            .credentials
+            .as_ref()
+            .filter(|credentials| credentials.issuer.public_key.is_some())
+        else {
+            bail!("This connection is not secured; the host's trust cannot be stored");
+        };
+        credentials.encode(token)
     }
 
     pub fn outgoing(&mut self, mut message: Message) -> Message {
@@ -196,6 +229,17 @@ impl Credentials {
         }
     }
 
+    fn load_auto_accept(&self) -> ResultType<Option<Vec<u8>>> {
+        let config = PeerConfig::load(&self.peer_id);
+        let Some(value) = config
+            .options
+            .get(base::config::keys::OPTION_AUTO_ACCEPT_TOKEN)
+        else {
+            return Ok(None);
+        };
+        self.decode(value)
+    }
+
     fn decode(&self, value: &str) -> ResultType<Option<Vec<u8>>> {
         if value.is_empty() {
             return Ok(None);
@@ -213,7 +257,7 @@ impl Credentials {
         Ok(Some(token))
     }
 
-    pub fn save(&self, token: &[u8], info: PeerInfoSerde) -> ResultType<()> {
+    fn encode(&self, token: &[u8]) -> ResultType<String> {
         if token.len() != TOKEN_BYTES {
             bail!("Invalid issued trusted-device credential");
         }
@@ -223,6 +267,10 @@ impl Credentials {
             issuer: self.issuer.clone(),
             ciphertext,
         };
-        PeerConfig::set_trusted_device_v2(&self.peer_id, serde_json::to_string(&saved)?, info)
+        Ok(serde_json::to_string(&saved)?)
+    }
+
+    pub fn save(&self, token: &[u8], info: PeerInfoSerde) -> ResultType<()> {
+        PeerConfig::set_trusted_device_v2(&self.peer_id, self.encode(token)?, info)
     }
 }

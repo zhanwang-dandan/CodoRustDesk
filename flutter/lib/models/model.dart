@@ -439,6 +439,9 @@ class FfiModel with ChangeNotifier {
                 .changePersonalHashPassword(id.toString(), hash.toString());
           }
         }
+      } else if (name == "cm_trust_device_result") {
+        final error = evt['error']?.toString() ?? '';
+        showToast(translate(error.isEmpty ? 'auto-accept-trusted-tip' : error));
       } else if (name == "cm_file_transfer_log") {
         if (isDesktop) {
           gFFI.cmFileModel.onFileTransferLog(evt);

@@ -2266,6 +2266,25 @@ impl<T: InvokeUiSession> Remote<T> {
                     }
                 }
                 Some(message::Union::Misc(misc)) => match misc.union {
+                    Some(misc::Union::AutoAcceptToken(token)) => {
+                        match self.trusted_device.encode_auto_accept(&token) {
+                            Ok(value) => {
+                                self.handler.lc.write().unwrap().set_option(
+                                    base::config::keys::OPTION_AUTO_ACCEPT_TOKEN.to_owned(),
+                                    value,
+                                );
+                                self.handler.msgbox(
+                                    "custom-nocancel-info",
+                                    "Prompt",
+                                    "auto-accept-granted-tip",
+                                    "",
+                                );
+                            }
+                            Err(error) => {
+                                log::warn!("Could not store the host's auto-accept trust: {error}");
+                            }
+                        }
+                    }
                     Some(misc::Union::AudioFormat(f)) => {
                         self.audio_sender.send(MediaData::AudioFormat(f)).ok();
                     }

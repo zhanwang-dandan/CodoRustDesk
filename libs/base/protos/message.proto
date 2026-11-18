@@ -86,6 +86,11 @@ message LoginRequest {
   string avatar = 17;
   bytes trusted_device_v2_token = 18;
   bool trusted_device_v2_supported = 19;
+  // Issued by the host's connection manager ("trust this device"); lets this
+  // controller be accepted without a password or confirmation next time.
+  bytes auto_accept_token = 20;
+  // The controller can store an auto-accept token sent in Misc.
+  bool auto_accept_supported = 21;
 }
 
 message Terminal {
@@ -872,6 +877,8 @@ message Misc {
     // is rebuilt, and held again, the next time it is shown, before any connection names it
     // by id again, so the shape just selected is always there to give.
     uint64 request_cursor_data = 39;
+    // Host -> controller: an auto-accept token granted from the connection manager.
+    bytes auto_accept_token = 40;
   }
 }
 

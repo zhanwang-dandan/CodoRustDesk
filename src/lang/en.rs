@@ -292,5 +292,12 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("api_server_empty_tip", "With API Server empty, your custom server defaults to HTTP. Contact your administrator to enable HTTPS."),
         ("android-logs-folder-tip", "Choose Android → media to store log files."),
         ("install-directory-not-empty-tip", "The selected folder is not empty. Installation may delete existing data. Consider choosing a different folder."),
+        ("auto-accept-trust-tip", "Accept this device automatically next time, without a password or confirmation"),
+        ("auto-accept-confirm-tip", "Trust this device? It will be connected automatically next time, without a password or confirmation. You can revoke this in Settings → Security → Auto-accepted devices."),
+        ("auto-accept-trusted-tip", "This device is trusted and will be accepted automatically next time."),
+        ("auto-accept-unsupported-tip", "The remote client does not support this feature. Ask it to update to the latest CodoRustDesk."),
+        ("auto-accept-granted-tip", "The remote side has trusted this device. Later connections will be accepted automatically."),
+        ("auto-accept-devices-tip", "Devices trusted from the connection window connect without a password or confirmation."),
+        ("auto-accept-devices-empty-tip", "No auto-accepted devices."),
     ].iter().cloned().collect();
 }

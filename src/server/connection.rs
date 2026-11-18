@@ -789,6 +789,16 @@ impl Connection {
                                 break;
                             }
                         }
+                        ipc::Data::TrustDevice(None) => {
+                            let result = match conn.grant_auto_accept().await {
+                                Ok(()) => String::new(),
+                                Err(error) => {
+                                    log::warn!("Trust device from connection manager failed: {error}");
+                                    error.to_string()
+                                }
+                            };
+                            conn.send_to_cm(ipc::Data::TrustDevice(Some(result)));
+                        }
                         ipc::Data::ChatMessage{text} => {
                             let mut misc = Misc::new();
                             misc.set_chat_message(ChatMessage {
@@ -3039,6 +3049,16 @@ impl Connection {
             let allow_logon_screen_password =
                 crate::get_builtin_option(keys::OPTION_ALLOW_LOGON_SCREEN_PASSWORD) == "Y"
                     && is_logon();
+
+            if self.try_auto_accept() {
+                // Trusted from the connection manager: accepted as if the host user clicked
+                // "Accept", without a password or a confirmation.
+                if !self.send_logon_response_and_keep_alive().await {
+                    return false;
+                }
+                self.try_start_cm(lr.my_id, lr.my_name, self.authorized);
+                return true;
+            }
 
             if (password::approve_mode() == ApproveMode::Click && !allow_logon_screen_password)
                 || password::approve_mode() == ApproveMode::Both && !password::has_valid_password()

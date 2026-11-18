@@ -1,4 +1,5 @@
 pub mod authority;
+pub mod auto_accept;
 pub mod client;
 pub mod config;
 pub mod host;
